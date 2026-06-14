@@ -1,4 +1,4 @@
-import { Expense } from './Expense.js'; // Imports the Expense class from another file
+import { Expense } from './expense.js'; // Imports the Expense class from another file
 
 export class Tracker { // Creates and exports the Tracker class
 
