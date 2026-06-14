@@ -1,4 +1,4 @@
-import { Tracker } from './Tracker.js'; // Imports the Tracker class (handles all expense logic)
+import { Tracker } from './tracker.js'; // Imports the Tracker class (handles all expense logic)
 
 // Creates a new instance of Tracker to manage all expenses in this app
 const tracker = new Tracker();
