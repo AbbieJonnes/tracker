@@ -1,108 +1,110 @@
-import { Tracker } from './tracker.js'; // Imports Tracker class from Tracker file
+import { Tracker } from './tracker.js'; // Imports Tracker class from tracker file
 
 // --- MOCK LOCALSTORAGE FOR NODE/JEST ---
-const localStorageMock = (() => { // Creates a localStorage for testing environment
+const localStorageMock = (() => { // Creates fake localStorage for Node testing
 
-    let store = {}; // Temporary storage object for key-value pairs
+    let store = {}; // Temporary storage container
 
-    return { // Returns mocked localStorage methods
+    return { // Mocked localStorage methods
 
-        getItem: (key) => store[key] || null, // Retrieves stored value by key or null if not found
+        getItem: (key) => store[key] || null, // Get value by key
 
-        setItem: (key, value) => { store[key] = value.toString(); }, // Saves value as string in mock storage
+        setItem: (key, value) => { store[key] = value.toString(); }, // Save value
 
-        clear: () => { store = {}; }, // Clears all stored data
+        clear: () => { store = {}; }, // Clear all data
 
-        removeItem: (key) => { delete store[key]; } // Deletes a specific key from storage
+        removeItem: (key) => { delete store[key]; } // Remove one item
 
     };
 
-})(); // Immediately executes function to create mock localStorage
+})(); // Immediately invoke mock function
 
-// Inject the mock into the global Node environment before tests run
-Object.defineProperty(global, 'localStorage', { value: localStorageMock }); // Replaces real localStorage with mock version
+// Replace real localStorage with mock version
+Object.defineProperty(global, 'localStorage', {
+    value: localStorageMock
+});
 
-describe('Tracker Class Unit Tests', () => { // Groups all Tracker-related tests
+describe('Tracker Class Unit Tests', () => { // Test suite for Tracker
 
-    let tracker; // Declares tracker variable for reuse in tests
+    let tracker; // Declare tracker instance
 
-    beforeEach(() => { // Runs before each test case
+    beforeEach(() => { // Runs before every test
 
-        localStorage.clear(); // Clears mock storage to ensure clean test state
+        localStorage.clear(); // Reset storage
 
-        tracker = new Tracker(); // Creates a new Tracker instance for isolation
-
-    });
-
-    test('should add an expense cleanly and update state array', () => { // Tests adding expense functionality
-
-        const item = tracker.addExpense('Coffee', '4.50', 'Food'); // Adds a sample expense
-
-        expect(tracker.expenses.length).toBe(1); // Checks if expense was added
-
-        expect(tracker.expenses[0].description).toBe('Coffee'); // Checks description correctness
-
-        expect(tracker.expenses[0].amount).toBe(4.5); // Checks amount conversion to number
-
-        expect(tracker.expenses[0].category).toBe('Food'); // Checks category correctness
-
-        expect(item).toHaveProperty('id'); // Ensures expense has unique ID
+        tracker = new Tracker(); // Fresh instance
 
     });
 
-    test('should correctly sum all structured values using reduce', () => { // Tests total calculation
+    test('should add an expense correctly', () => { // Add expense test
 
-        tracker.addExpense('Lunch', '15.00', 'Food'); // Adds first expense
+        const item = tracker.addExpense('Coffee', 4.50, 'Food'); // Add expense (use number not string)
 
-        tracker.addExpense('Gas', '30.00', 'Transport'); // Adds second expense
+        expect(tracker.expenses.length).toBe(1); // Check array length
 
-        tracker.addExpense('Movie', '12.50', 'Entertainment'); // Adds third expense
+        expect(tracker.expenses[0].description).toBe('Coffee'); // Check description
 
-        const total = tracker.calculateTotal(); // Calculates total expenses
+        expect(tracker.expenses[0].amount).toBe(4.50); // Check amount
 
-        expect(total).toBe(57.50); // Verifies correct sum
+        expect(tracker.expenses[0].category).toBe('Food'); // Check category
 
-    });
-
-    test('should slice items out dynamically by ID matching references', () => { // Tests delete functionality
-
-        const item1 = tracker.addExpense('Book', '20.00', 'Other'); // Adds first expense
-
-        const item2 = tracker.addExpense('Subway', '5.00', 'Transport'); // Adds second expense
-
-        tracker.removeExpense(item1.id); // Removes first expense by ID
-
-        expect(tracker.expenses.length).toBe(1); // Ensures only one remains
-
-        expect(tracker.expenses[0].id).toBe(item2.id); // Confirms correct item remains
+        expect(item).toHaveProperty('id'); // Ensure ID exists
 
     });
 
-    test('should properly filter entries without destructive structural mutation', () => { // Tests filtering logic
+    test('should calculate total correctly', () => { // Total test
 
-        tracker.addExpense('Burger', '10.00', 'Food'); // Adds food expense
+        tracker.addExpense('Lunch', 15.00, 'Food'); // First expense
 
-        tracker.addExpense('Bus fare', '2.50', 'Transport'); // Adds transport expense
+        tracker.addExpense('Gas', 30.00, 'Transport'); // Second expense
 
-        tracker.currentFilter = 'Food'; // Sets filter to Food category
+        tracker.addExpense('Movie', 12.50, 'Entertainment'); // Third expense
 
-        const targetedArray = tracker.getFilteredExpenses(); // Gets filtered results
+        const total = tracker.calculateTotal(); // Calculate total
 
-        expect(targetedArray.length).toBe(1); // Ensures only food items remain
-
-        expect(targetedArray[0].description).toBe('Burger'); // Confirms correct filtering
+        expect(total).toBe(57.50); // Expect correct sum
 
     });
 
-    test('should preserve historical state values accurately in window.localStorage storage layers', () => { // Tests persistence
+    test('should remove expense by id', () => { // Remove test
 
-        tracker.addExpense('Gym Membership', '50.00', 'Other'); // Adds expense
+        const item1 = tracker.addExpense('Book', 20.00, 'Other'); // Add first
 
-        const persistentTracker = new Tracker(); // Simulates page refresh by creating new instance
+        const item2 = tracker.addExpense('Subway', 5.00, 'Transport'); // Add second
 
-        expect(persistentTracker.expenses.length).toBe(1); // Checks if data persisted
+        tracker.removeExpense(item1.id); // Remove first item
 
-        expect(persistentTracker.expenses[0].description).toBe('Gym Membership'); // Confirms stored value
+        expect(tracker.expenses.length).toBe(1); // One remains
+
+        expect(tracker.expenses[0].id).toBe(item2.id); // Correct item remains
+
+    });
+
+    test('should filter expenses by category', () => { // Filter test
+
+        tracker.addExpense('Burger', 10.00, 'Food'); // Food
+
+        tracker.addExpense('Bus fare', 2.50, 'Transport'); // Transport
+
+        tracker.currentFilter = 'Food'; // Set filter
+
+        const result = tracker.getFilteredExpenses(); // Get filtered
+
+        expect(result.length).toBe(1); // Only one item
+
+        expect(result[0].description).toBe('Burger'); // Correct item
+
+    });
+
+    test('should persist data in localStorage', () => { // Persistence test
+
+        tracker.addExpense('Gym Membership', 50.00, 'Other'); // Add item
+
+        const newTracker = new Tracker(); // Simulate refresh
+
+        expect(newTracker.expenses.length).toBe(1); // Data persisted
+
+        expect(newTracker.expenses[0].description).toBe('Gym Membership'); // Correct data
 
     });
 
