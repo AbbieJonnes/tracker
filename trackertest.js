@@ -1,4 +1,4 @@
-import { Tracker } from './Tracker.js'; // Imports Tracker class from Tracker file
+import { Tracker } from './tracker.js'; // Imports Tracker class from Tracker file
 
 // --- MOCK LOCALSTORAGE FOR NODE/JEST ---
 const localStorageMock = (() => { // Creates a localStorage for testing environment
